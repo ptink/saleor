@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation to connect voucher with checkout - #3739 by @Kwaidan00
 - Update S3 deployment documentation to include CORS configuration note - #3743 by @NyanKiyoshi
 - Fix missing migrations for is_published field of product and page model - #3757 by @jxltom
+- Add json fields to models for content/description - #3756 by @michaljelonek
 
 ## 2.3.0
 ### API
