@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 import graphene
 from django.utils.text import slugify
 
