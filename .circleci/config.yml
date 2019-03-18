@@ -1,9 +1,12 @@
-version: 2
-jobs:
-  build:
-    working_directory: /app
-    docker:
-      - image: docker:17.09.0-ce-git
+version: 2.1
+
+defaults: &defaults
+  working_directory: /app
+  docker:
+    - image: docker:17.09.0-ce-git
+
+commands:
+  docker-build:
     steps:
       - checkout
       - setup_remote_docker:
@@ -22,13 +25,23 @@ jobs:
             docker build \
               --build-arg STATIC_URL=$STATIC_URL \
               -t mirumee/saleor:latest .
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - docker-build
       - run:
-          name: Run tests
-          command: |
-            docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.4-alpine
-            docker run --network container:db --rm -e DATABASE_URL mirumee/saleor:latest pytest
-          environment:
-            DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
+        name: Run tests
+        command: |
+          docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.4-alpine
+          docker run --network container:db --rm -e DATABASE_URL mirumee/saleor:latest pytest
+        environment:
+          DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
+  deploy:
+    <<: *defaults
+    steps:
+      - docker-build
       - deploy:
           name: Push Docker image
           command: |
@@ -53,14 +66,14 @@ jobs:
             pip install awscli
             sh ./scripts/deploy_master.sh > /dev/null 2>&1
 
-
 workflows:
-  version: 2
-  build-deploy:
+  version: 2.1
+  test-deploy:
     jobs:
-        - build:
-            filters:
-              branches:
-                only: master
-              tags:
-                only: /demo.*/
+      - test
+      - deploy:
+          filters:
+            branches:
+             ignore: /.*/
+            tags:
+              only: /demo.*/
