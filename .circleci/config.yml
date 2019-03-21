@@ -24,7 +24,7 @@ commands:
           command: |
             docker build \
               --build-arg STATIC_URL=$STATIC_URL \
-              -t mirumee/saleor:latest .
+              -t ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest .
 
 jobs:
   test:
@@ -35,7 +35,7 @@ jobs:
         name: Run tests
         command: |
           docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.4-alpine
-          docker run --network container:db --rm -e DATABASE_URL mirumee/saleor:latest pytest
+          docker run --network container:db --rm -e DATABASE_URL ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest pytest
         environment:
           DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
   deploy:
@@ -46,9 +46,9 @@ jobs:
           name: Push Docker image
           command: |
             docker login -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
-            docker push mirumee/saleor:$CIRCLE_SHA1
-            docker push mirumee/saleor:latest
+            docker tag ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest ${DOCKERCLOUD_REPO:-mirumee/saleor}:$CIRCLE_SHA1
+            docker push ${DOCKERCLOUD_REPO:-mirumee/saleor}:$CIRCLE_SHA1
+            docker push ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest
       - run:
           name: Deploy saleor-demo
           command: |
@@ -67,7 +67,7 @@ jobs:
             sh ./scripts/deploy_master.sh > /dev/null 2>&1
 
 workflows:
-  version: 2.1
+  version: 2
   test-deploy:
     jobs:
       - test
