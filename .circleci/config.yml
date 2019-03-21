@@ -6,7 +6,7 @@ defaults: &defaults
     - image: docker:17.09.0-ce-git
 
 commands:
-  docker-build:
+  docker_build:
     steps:
       - checkout
       - setup_remote_docker:
@@ -30,18 +30,18 @@ jobs:
   test:
     <<: *defaults
     steps:
-      - docker-build
+      - docker_build
       - run:
-        name: Run tests
-        command: |
-          docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.4-alpine
-          docker run --network container:db --rm -e DATABASE_URL ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest pytest
-        environment:
-          DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
+          name: Run tests
+          command: |
+            docker run -d --name db -e POSTGRES_USER=saleor -e POSTGRES_PASSWORD=saleor postgres:9.4-alpine
+            docker run --network container:db --rm -e DATABASE_URL ${DOCKERCLOUD_REPO:-mirumee/saleor}:latest pytest
+          environment:
+            DATABASE_URL: postgres://saleor:saleor@localhost:5432/saleor
   deploy:
     <<: *defaults
     steps:
-      - docker-build
+      - docker_build
       - deploy:
           name: Push Docker image
           command: |
